@@ -28,15 +28,15 @@ from .signal import GracefulKiller
               help="The remote path in which to place the files from dump1090-fa.")
 @click.option('-d', '--skip-remote-dir-creation', 'skip_remote_dir_creation', is_flag=True, default=False,
               help="If set, we will skip attempting to create the remote directory upon initialization.")
-@click.option('-r', '--reconnect-every', 'reconnect_every', default=300,
-              help="The number of times to send data prior to reestablishing the ssh connection. Default: 300")
+@click.option('-r', '--reconnect-every', 'reconnect_every_n_hrs', default=24,
+              help="After this duration (in hours), the SSH connection will be reestablished. Default: 24 (hrs)")
 @click.option('-i', '--update-history-every', 'update_history_every', default=240,
               help="The number of iterations between history updates (history updates take a while). Default: 240")
 @click.option('--log-level', 'log_level', default='INFO',
               type=click.Choice(['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG']),
               help="The log level to use; valid options are: [CRITICAL, ERROR, WARN, INFO, DEBUG] Default: INFO")
 def main(duration_between_sends, piaware_hostname, local_path, remote_host, remote_user, remote_key, remote_path,
-         skip_remote_dir_creation, reconnect_every, update_history_every, log_level):
+         skip_remote_dir_creation, reconnect_every_n_hrs, update_history_every, log_level):
     killer = GracefulKiller()
 
     # Create our logger
@@ -57,7 +57,7 @@ def main(duration_between_sends, piaware_hostname, local_path, remote_host, remo
     log.info("\t{0}: {1}".format('remote_key', remote_key))
     log.info("\t{0}: {1}".format('remote_path', remote_path))
     log.info("\t{0}: {1}".format('skip_remote_dir_creation', skip_remote_dir_creation))
-    log.info("\t{0}: {1}".format('reconnect_every', reconnect_every))
+    log.info("\t{0}: {1}".format('reconnect_every_n_hrs', reconnect_every_n_hrs))
     log.info("\t{0}: {1}".format('update_history_every', update_history_every))
     log.info("\t{0}: {1}".format('log_level', log_level))
 
@@ -92,7 +92,7 @@ def main(duration_between_sends, piaware_hostname, local_path, remote_host, remo
                                   duration=duration_between_sends,
                                   local_path=local_path,
                                   update_history_every=update_history_every,
-                                  reconnect_every=reconnect_every,
+                                  reconnect_every=reconnect_every_n_hrs,
                                   log=log)
     else:
         relay = RemotePiAwareRelay(halt_execution=killer.halt_execution,
@@ -104,7 +104,7 @@ def main(duration_between_sends, piaware_hostname, local_path, remote_host, remo
                                    duration=duration_between_sends,
                                    piaware_hostname=piaware_hostname,
                                    update_history_every=update_history_every,
-                                   reconnect_every=reconnect_every,
+                                   reconnect_every=reconnect_every_n_hrs,
                                    log=log)
     ##
     # Execute
@@ -114,7 +114,7 @@ def main(duration_between_sends, piaware_hostname, local_path, remote_host, remo
             log.info("Running the PiAwareRelay...")
             relay.run()
             if not killer.halt_execution.is_set():
-                secs = 30
+                secs = 60
                 log.info("Sleeping for {} seconds while we wrap up this iteration...".format(secs))
                 time.sleep(secs)
         except Exception as e:

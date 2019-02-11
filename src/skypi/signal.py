@@ -12,5 +12,5 @@ class GracefulKiller:
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
-        print("\nSIG_{} - Setting flag to halt execution, please hold...".format(signal))
+        print("\n{} - Setting flag to halt execution, please hold...".format(signal.Signals(signum).name))
         self.halt_execution.set()

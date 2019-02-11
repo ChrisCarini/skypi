@@ -5,6 +5,7 @@ import sys
 import threading
 import time
 from contextlib import contextmanager
+from datetime import timedelta
 from logging import CRITICAL, DEBUG, ERROR, INFO, WARN
 
 import requests
@@ -25,6 +26,7 @@ class PiAwareRelay:
                  reconnect_every: int,
                  log: logging.Logger = None):
         self.send_iteration = 0
+        self.connected_at = time.time()
         self.halt_execution = halt_execution
         self.remote_host = remote_host
         self.remote_user = remote_user
@@ -70,22 +72,25 @@ class PiAwareRelay:
     def send(self, sftp: SFTPClient) -> None:
         raise NotImplementedError
 
+    def needs_connection_refresh(self):
+        return time.time() >= self.connected_at + timedelta(hours=self.reconnect_every).total_seconds()
+
     def run(self) -> None:
         self.send_iteration = 0
         with self.sftp_client() as sftp:
-            while not self.halt_execution.is_set() and sftp.get_channel().get_transport().is_active():  # self.send_iteration < self.reconnect_every:
+            while not self.halt_execution.is_set() and \
+                    sftp.get_channel().get_transport().is_active() and \
+                    not self.needs_connection_refresh():
                 start_time = time.time()
                 self.send(sftp=sftp)
                 # If the channel is not active, no sense waiting...
                 if sftp.get_channel().get_transport().is_active():
                     self.wait(start_time=start_time)
-            self.log(level=INFO,
-                     msg="Run loop completed [halt_execution = {0}; ssh active = {3}; sent / num_to_reconnect = {1}/{2}]...".format(
-                         self.halt_execution.is_set(),
-                         self.send_iteration,
-                         self.reconnect_every,
-                         sftp.get_channel().get_transport().is_active(),
-                     ))
+            self.log(level=INFO, msg="Run loop completed.")
+            self.log(level=INFO, msg="\tMessages Sent: {0}".format(self.send_iteration))
+            self.log(level=INFO, msg="\thalt_execution = {0}".format(self.halt_execution.is_set()))
+            self.log(level=INFO, msg="\tssh active = {0}".format(sftp.get_channel().get_transport().is_active()))
+            self.log(level=INFO, msg="\tneeds connection refresh = {0}".format(self.needs_connection_refresh()))
 
     @contextmanager
     def sftp_client(self) -> SFTPClient:
@@ -94,6 +99,7 @@ class PiAwareRelay:
 
             self.log(level=INFO, msg="Connecting to remote host [{}]".format(self.remote_host))
             client.connect(hostname=self.remote_host, username=self.remote_user, key_filename=self.remote_key)
+            self.connected_at = time.time()
 
             self.log(level=DEBUG, msg="Opening SFTP connection to remote host [{}]".format(self.remote_host))
             with client.open_sftp() as sftp:  # type: SFTPClient
@@ -143,8 +149,8 @@ class LocalPiAwareRelay(PiAwareRelay):
             local_full_path = os.path.join(self.local_path, file)
             remote_full_path = os.path.join(self.remote_path, file)
             try:
-                self.log(level=INFO, msg="Copying local file[{}] to remote file [{}]".format(local_full_path,
-                                                                                             remote_full_path))
+                self.log(level=DEBUG, msg="Copying local file[{}] to remote file [{}]".format(local_full_path,
+                                                                                              remote_full_path))
                 sftp.put(local_full_path, remote_full_path)
             except IOError:
                 self.log(level=ERROR,
@@ -195,7 +201,7 @@ class RemotePiAwareRelay(PiAwareRelay):
         remote_filename = os.path.join(self.remote_path, filename)
         with sftp.open(remote_filename, 'w') as f:
             try:
-                self.log(level=INFO, msg="Writing data to remote file [{}]".format(remote_filename))
+                self.log(level=DEBUG, msg="Writing data to remote file [{}]".format(remote_filename))
                 f.write(data=data)
             except IOError:
                 self.log(level=ERROR, msg="IOError trying to write data to remote file [{}]".format(remote_filename))
