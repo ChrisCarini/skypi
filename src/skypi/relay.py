@@ -11,7 +11,7 @@ from logging import CRITICAL, DEBUG, ERROR, INFO, WARN
 import requests
 from paramiko import SSHClient, SFTPClient, ssh_exception
 
-from .constants import LOCAL_DATA_FILES_PATH
+from src.skypi.constants import LOCAL_DATA_FILES_PATH
 
 
 class PiAwareRelay:

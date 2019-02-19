@@ -4,9 +4,9 @@ import time
 
 import click
 
-from .constants import LOCAL_DATA_FILES_PATH
-from .relay import PiAwareRelay, LocalPiAwareRelay, RemotePiAwareRelay
+from src.skypi.constants import LOCAL_DATA_FILES_PATH
 from src.skypi.killer import GracefulKiller
+from src.skypi.relay import PiAwareRelay, LocalPiAwareRelay, RemotePiAwareRelay
 
 
 @click.command(context_settings=dict(help_option_names=['--help', '-help']))
