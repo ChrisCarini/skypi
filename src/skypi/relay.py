@@ -66,6 +66,9 @@ class PiAwareRelay:
                 self.log(level=CRITICAL,
                          msg="Unable to create / verify remote directory exists. Full Error: {0}".format(e))
                 raise
+            except ssh_exception.SSHException as e:
+                self.log(level=CRITICAL, msg="SSH Exception: {}".format(e))
+                raise
             self.log(level=INFO, msg="Attempt at creating the remote directory complete.")
         self.log(level=INFO, msg="Initialization complete.")
 
@@ -77,32 +80,42 @@ class PiAwareRelay:
 
     def run(self) -> None:
         self.send_iteration = 0
-        with self.sftp_client() as sftp:
-            while not self.halt_execution.is_set() and \
-                    sftp.get_channel().get_transport().is_active() and \
-                    not self.needs_connection_refresh():
-                start_time = time.time()
-                self.send(sftp=sftp)
-                # If the channel is not active, no sense waiting...
-                if sftp.get_channel().get_transport().is_active():
-                    self.wait(start_time=start_time)
-            self.log(level=INFO, msg="Run loop completed.")
-            self.log(level=INFO, msg="\tMessages Sent: {0}".format(self.send_iteration))
-            self.log(level=INFO, msg="\thalt_execution = {0}".format(self.halt_execution.is_set()))
-            self.log(level=INFO, msg="\tssh active = {0}".format(sftp.get_channel().get_transport().is_active()))
-            self.log(level=INFO, msg="\tneeds connection refresh = {0}".format(self.needs_connection_refresh()))
+        try:
+            with self.sftp_client() as sftp:
+                while not self.halt_execution.is_set() and \
+                        sftp.get_channel().get_transport().is_active() and \
+                        not self.needs_connection_refresh():
+                    start_time = time.time()
+                    self.send(sftp=sftp)
+                    # If the channel is not active, no sense waiting...
+                    if sftp.get_channel().get_transport().is_active():
+                        self.wait(start_time=start_time)
+                self.log(level=INFO, msg="Run loop completed.")
+                self.log(level=INFO, msg="\tMessages Sent: {0}".format(self.send_iteration))
+                self.log(level=INFO, msg="\thalt_execution = {0}".format(self.halt_execution.is_set()))
+                self.log(level=INFO, msg="\tssh active = {0}".format(sftp.get_channel().get_transport().is_active()))
+                self.log(level=INFO, msg="\tneeds connection refresh = {0}".format(self.needs_connection_refresh()))
+        except ssh_exception.SSHException as e:
+            self.log(level=CRITICAL, msg="SSH Exception: {}".format(e))
 
     @contextmanager
     def sftp_client(self) -> SFTPClient:
         with SSHClient() as client:
             client.load_system_host_keys()
-
-            self.log(level=INFO, msg="Connecting to remote host [{}]".format(self.remote_host))
-            client.connect(hostname=self.remote_host, username=self.remote_user, key_filename=self.remote_key)
-            self.connected_at = time.time()
+            try:
+                self.log(level=INFO, msg="Connecting to remote host [{}]".format(self.remote_host))
+                client.connect(hostname=self.remote_host, username=self.remote_user, key_filename=self.remote_key)
+                self.connected_at = time.time()
+                self.log(level=INFO, msg="Connection successful to remote host [{}]".format(self.remote_host))
+            except ssh_exception.SSHException as e:
+                self.log(level=CRITICAL,
+                         msg="SSH Exception while connecting to {} (re-raising): {}".format(self.remote_host, e))
+                client.close()
+                raise
 
             self.log(level=DEBUG, msg="Opening SFTP connection to remote host [{}]".format(self.remote_host))
             with client.open_sftp() as sftp:  # type: SFTPClient
+                self.log(level=DEBUG, msg="Opened SFTP connection to remote host [{}]".format(self.remote_host))
                 yield sftp
             self.log(level=DEBUG, msg="Closed SFTP connection to remote host [{}]".format(self.remote_host))
         self.log(level=INFO, msg="Closed SSH connection to remote host [{}]".format(self.remote_host))
