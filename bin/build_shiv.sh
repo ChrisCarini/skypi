@@ -10,6 +10,7 @@ function create_venv() {
   python3.7 -m venv venv
   echo "done."
 }
+
 function enter_venv() {
   echo "entering virtualenv..."
   source ./venv/bin/activate
@@ -22,14 +23,13 @@ function install_dependencies() {
   echo "done."
 }
 
-
 echo "clean old skypi.pyz..."
 rm -r skypi.pyz
 echo "done."
 
 
 echo "check if the virtualenv is present..."
-if [ -d "venv/" ]; then
+if [[ -d "venv/" ]]; then
   echo "virtualenv IS present."
 else
   echo "virtualenv NOT present."
@@ -44,14 +44,17 @@ echo "done."
 
 
 echo "check if the \"${DIST_DIR}/\" directory exists..."
-if [ -d "${DIST_DIR}/" ]; then
+if [[ -d "${DIST_DIR}/" ]]; then
   echo "\"${DIST_DIR}/\" IS present."
 
   echo "check if the \"${DIST_DIR}/\" directory has different requirements installed..."
   ls ${DIST_DIR} | grep -E -o ".*.(dist|egg)-info" | sed 's/-/==/' | sed 's/.dist-info//' | sed 's/-py3.7.egg-info//' > tmp_req.txt
-  REQ_DIFF=$(diff tmp_req.txt ../requirements.txt)
+  REQ_DIFF=$(diff <(cat tmp_req.txt | sort) <(cat ../requirements.txt | sort))
   if [[ "$REQ_DIFF" != "" ]]; then
     echo "requirements ARE different - removing existing \"${DIST_DIR}/\"..."
+    echo -e "DIFFERENCE:\n==BEGIN DIFF==\n"
+    diff <(cat tmp_req.txt | sort) <(cat ../requirements.txt | sort)
+    echo -e "\n==END DIFF=="
     rm -r ${DIST_DIR}
   else
     echo "requirements ARE NOT different - skip installing dependencies into \"${DIST_DIR}/\"..."
