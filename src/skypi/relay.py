@@ -75,8 +75,11 @@ class PiAwareRelay:
     def send(self, sftp: SFTPClient) -> None:
         raise NotImplementedError
 
-    def needs_connection_refresh(self):
-        return time.time() >= self.connected_at + timedelta(hours=self.reconnect_every).total_seconds()
+    def reconnect_at(self) -> float:
+        return self.connected_at + timedelta(hours=self.reconnect_every).total_seconds()
+
+    def needs_connection_refresh(self) -> float:
+        return time.time() >= self.reconnect_at()
 
     def run(self) -> None:
         self.send_iteration = 0
@@ -107,6 +110,10 @@ class PiAwareRelay:
                 client.connect(hostname=self.remote_host, username=self.remote_user, key_filename=self.remote_key)
                 self.connected_at = time.time()
                 self.log(level=INFO, msg="Connection successful to remote host [{}]".format(self.remote_host))
+
+                self.log(level=INFO, msg="Will reconnect at {}".format(time.strftime(
+                    logging.Formatter.default_msec_format.replace("%s", logging.Formatter.default_time_format),
+                    time.localtime(self.reconnect_at()))))
             except ssh_exception.SSHException as e:
                 self.log(level=CRITICAL,
                          msg="SSH Exception while connecting to {} (re-raising): {}".format(self.remote_host, e))
@@ -131,7 +138,7 @@ class PiAwareRelay:
     def is_local(path: str = KNOWN_LOCAL_DATA_FILES_PATHS) -> bool:
         return os.path.exists(path=path)
 
-    def log(self, level: int = logging.ERROR, msg: str = ""):
+    def log(self, level: int = logging.ERROR, msg: str = "") -> None:
         prepend = "{} - ".format(self.send_iteration) if isinstance(self.send_iteration, int) else ""
         self.LOG.log(level=level, msg="{}{}".format(prepend, msg))
 
