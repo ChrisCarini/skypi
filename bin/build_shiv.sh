@@ -77,7 +77,7 @@ echo "done."
 
 
 echo "shiv that sucker..."
-shiv --site-packages ${DIST_DIR} --compressed -p '/usr/bin/env python3.7' -o skypi.pyz -e src.skypi.run.main
+shiv --site-packages ${DIST_DIR} --compressed -p '/usr/bin/env python3.7' -o skypi.pyz -e src.skypi.run.cli
 echo "done."
 
 
