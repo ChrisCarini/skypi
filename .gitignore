@@ -1,4 +1,6 @@
 .idea/
+dist/
 venv/
 activate
-skypi.iml
+*.iml
+local_variables.sh

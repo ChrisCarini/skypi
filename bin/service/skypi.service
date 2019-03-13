@@ -1,0 +1,20 @@
+# SkyPi service for systemd
+# Install in /etc/systemd/system
+
+[Unit]
+Description=SkyPi
+Documentation=https://github.com/chriscarini/skypi/
+Wants=piaware.service network-online.target
+After=piaware.service
+
+[Service]
+User=pi
+ExecStart=/usr/local/skypi/skypi.pyz run --config-file /etc/skypi/config.local.ini
+Restart=on-failure
+RestartSec=60
+# exit code 4 means login failed
+# exit code 6 means startup failed (bad args or missing MAC)
+RestartPreventExitStatus=4 6
+
+[Install]
+WantedBy=default.target
