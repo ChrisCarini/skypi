@@ -6,15 +6,21 @@ to have the same internally accessible web page be externally accessible without
 accomplished by:
 1) Cloning [FlightAware's dump1090 GitHub project `public_html`](https://github.com/flightaware/dump1090/tree/master/public_html) 
 directory to an externally accessible website 
-1) SFTP-ing the necessary JSON files to the needed directory on the aformentioned externally accessible website over SSH
+1) SFTP-ing the necessary JSON files to the needed directory on the aforementioned externally accessible website over SSH
 
 ## Description
 ### Prerequisites
 Before you get started, you'll need the below already setup:
 1) A Raspberry Pi configured with FlightAware's PiAware ([directions](https://flightaware.com/adsb/piaware/))
-1) An externally accessible website (this was tested on Apache, but should work fine on others)
-1) A network connection from the Raspberry Pi to the externally accessible website
-1) A user on the externally accessible website host with the ability to authenticate using SSH keys
+1) An externally accessible website
+1) The below network connections (Key-Based SSH Authentication):
+   - Local Computer -> Raspberry Pi
+   - Local Computer -> External Host
+   - Raspberry Pi -> External Host
+
+### Quick Start
+1) Open the `local_variables.sh` file and modify the values as needed.
+1) Run `./install.sh install`
 
 ### Getting Started
 The below directions assume you are using PiAware on a default `Raspbian` installation; if you are using another Linux 
