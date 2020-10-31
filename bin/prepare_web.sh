@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-git clone https://github.com/flightaware/dump1090.git ./
-find * -maxdepth 0 -name 'public_html' -prune -o -exec rm -rf '{}' ';'
+git clone https://github.com/flightaware/dump1090.git ./tmp_clone
+find * -maxdepth 0 -name 'tmp_clone' -prune -o -exec rm -rf '{}' ';'
 rm -rf ./.* 2> /dev/null
-mv public_html/* ./
-rm -rf public_html
+mv ./tmp_clone/public_html/* ./
+rm -rf ./tmp_clone
 mkdir data
 
 ##
