@@ -53,21 +53,17 @@ class PiAwareRelay:
                     try:
                         sftp.chdir(self.remote_path)
                     except IOError:
-                        self.log(level=WARN,
-                                 msg="Error chdir to remote directory [{}]. Does not exist.".format(self.remote_path))
+                        self.log(level=WARN, msg=f"Error chdir to remote dir [{self.remote_path}]. Does not exist.")
                         try:
-                            self.log(level=INFO,
-                                     msg="Trying to make directory on remote host: {}".format(self.remote_path))
+                            self.log(level=INFO, msg=f"Trying to make directory on remote host: {self.remote_path}")
                             sftp.mkdir(self.remote_path)
                         except IOError:
-                            self.log(level=ERROR,
-                                     msg="IOError - remote directory [{}] likely exists.".format(self.remote_path))
+                            self.log(level=ERROR, msg=f"IOError - remote directory [{self.remote_path}] likely exists.")
             except ssh_exception.NoValidConnectionsError as e:
-                self.log(level=CRITICAL,
-                         msg="Unable to create / verify remote directory exists. Full Error: {0}".format(e))
+                self.log(level=CRITICAL, msg=f"Unable to create / verify remote directory exists. Full Error: {e}")
                 raise
             except ssh_exception.SSHException as e:
-                self.log(level=CRITICAL, msg="SSH Exception: {}".format(e))
+                self.log(level=CRITICAL, msg=f"SSH Exception: {e}")
                 raise
             self.log(level=INFO, msg="Attempt at creating the remote directory complete.")
         self.log(level=INFO, msg="Initialization complete.")
@@ -94,44 +90,44 @@ class PiAwareRelay:
                     if sftp.get_channel().get_transport().is_active():
                         self.wait(start_time=start_time)
                 self.log(level=INFO, msg="Run loop completed.")
-                self.log(level=INFO, msg="\tMessages Sent: {0}".format(self.send_iteration))
-                self.log(level=INFO, msg="\thalt_execution = {0}".format(self.halt_execution.is_set()))
-                self.log(level=INFO, msg="\tssh active = {0}".format(sftp.get_channel().get_transport().is_active()))
-                self.log(level=INFO, msg="\tneeds connection refresh = {0}".format(self.needs_connection_refresh()))
+                self.log(level=INFO, msg=f"\tMessages Sent: {self.send_iteration}")
+                self.log(level=INFO, msg=f"\thalt_execution = {self.halt_execution.is_set()}")
+                self.log(level=INFO, msg=f"\tssh active = {sftp.get_channel().get_transport().is_active()}")
+                self.log(level=INFO, msg=f"\tneeds connection refresh = {self.needs_connection_refresh()}")
         except ssh_exception.SSHException as e:
-            self.log(level=CRITICAL, msg="SSH Exception: {}".format(e))
+            self.log(level=CRITICAL, msg=f"SSH Exception: {e}")
 
     @contextmanager
     def sftp_client(self) -> SFTPClient:
         with SSHClient() as client:
             client.load_system_host_keys()
             try:
-                self.log(level=INFO, msg="Connecting to remote host [{}]".format(self.remote_host))
+                self.log(level=INFO, msg=f"Connecting to remote host [{self.remote_host}]")
                 client.connect(hostname=self.remote_host, username=self.remote_user, key_filename=self.remote_key)
                 self.connected_at = time.time()
-                self.log(level=INFO, msg="Connection successful to remote host [{}]".format(self.remote_host))
+                self.log(level=INFO, msg=f"Connection successful to remote host [{self.remote_host}]")
 
-                self.log(level=INFO, msg="Will reconnect at {}".format(time.strftime(
+                reconnect_time = time.strftime(
                     logging.Formatter.default_msec_format.replace("%s", logging.Formatter.default_time_format),
-                    time.localtime(self.reconnect_at()))))
+                    time.localtime(self.reconnect_at()))
+                self.log(level=INFO, msg=f"Will reconnect at {reconnect_time}")
             except ssh_exception.SSHException as e:
-                self.log(level=CRITICAL,
-                         msg="SSH Exception while connecting to {} (re-raising): {}".format(self.remote_host, e))
+                self.log(level=CRITICAL, msg=f"SSH Exception while connecting to {self.remote_host} (re-raising): {e}")
                 client.close()
                 raise
 
-            self.log(level=DEBUG, msg="Opening SFTP connection to remote host [{}]".format(self.remote_host))
+            self.log(level=DEBUG, msg=f"Opening SFTP connection to remote host [{self.remote_host}]")
             with client.open_sftp() as sftp:  # type: SFTPClient
-                self.log(level=DEBUG, msg="Opened SFTP connection to remote host [{}]".format(self.remote_host))
+                self.log(level=DEBUG, msg=f"Opened SFTP connection to remote host [{self.remote_host}]")
                 yield sftp
-            self.log(level=DEBUG, msg="Closed SFTP connection to remote host [{}]".format(self.remote_host))
-        self.log(level=INFO, msg="Closed SSH connection to remote host [{}]".format(self.remote_host))
+            self.log(level=DEBUG, msg=f"Closed SFTP connection to remote host [{self.remote_host}]")
+        self.log(level=INFO, msg=f"Closed SSH connection to remote host [{self.remote_host}]")
 
     def wait(self, start_time: float = time.time()) -> None:
         sleep_duration = self.duration - ((time.time() - start_time) % 60.0)
         sleep_duration = 0 if sleep_duration < 0 else sleep_duration
         if not self.halt_execution.is_set():
-            self.log(level=INFO, msg="Sleeping for {} seconds...".format(sleep_duration))
+            self.log(level=INFO, msg=f"Sleeping for {sleep_duration} seconds...")
             time.sleep(sleep_duration)
 
     @staticmethod
@@ -139,8 +135,8 @@ class PiAwareRelay:
         return os.path.exists(path=path)
 
     def log(self, level: int = logging.ERROR, msg: str = "") -> None:
-        prepend = "{} - ".format(self.send_iteration) if isinstance(self.send_iteration, int) else ""
-        self.LOG.log(level=level, msg="{}{}".format(prepend, msg))
+        prepend = f"{self.send_iteration} - " if isinstance(self.send_iteration, int) else ""
+        self.LOG.log(level=level, msg=f"{prepend}{msg}")
 
 
 class LocalPiAwareRelay(PiAwareRelay):
@@ -163,19 +159,17 @@ class LocalPiAwareRelay(PiAwareRelay):
         for file in os.listdir(self.local_path):
             if self.send_iteration % self.update_history_every != 0 and (
                     file.startswith("history") and file.endswith(".json")):
-                self.log(level=DEBUG, msg="Skipping file [{0}]; [{1}/{2}]...".format(file, self.send_iteration,
-                                                                                     self.update_history_every))
+                self.log(level=DEBUG,
+                         msg=f"Skipping file [{file}]; [{self.send_iteration}/{self.update_history_every}]...")
                 continue
             local_full_path = os.path.join(self.local_path, file)
             remote_full_path = os.path.join(self.remote_path, file)
             try:
-                self.log(level=DEBUG, msg="Copying local file[{}] to remote file [{}]".format(local_full_path,
-                                                                                              remote_full_path))
+                self.log(level=DEBUG, msg=f"Copying local file[{local_full_path}] to remote file [{remote_full_path}]")
                 sftp.put(local_full_path, remote_full_path)
             except IOError:
                 self.log(level=ERROR,
-                         msg="IOError trying to copy local file[{}] to remote file [{}]".format(local_full_path,
-                                                                                                remote_full_path))
+                         msg=f"IOError trying to copy local file[{local_full_path}] to remote file [{remote_full_path}]")
         self.send_iteration += 1
 
 
@@ -203,16 +197,15 @@ class RemotePiAwareRelay(PiAwareRelay):
         self.send_data(sftp=sftp, data=aircraft_data, filename="aircraft.json")
 
         if self.send_iteration % self.update_history_every == 0:
-            for filename in ["history_{0}.json".format(num) for num in
-                             range(0, ast.literal_eval(receiver_data)['history'])]:
+            for filename in [f"history_{num}.json" for num in range(0, ast.literal_eval(receiver_data)['history'])]:
                 self.send_data(sftp=sftp, data=self.get_data(file=filename), filename=filename)
 
         self.send_iteration += 1
 
     def get_data(self, file: str = "aircraft.json") -> str:
         data: str = None
-        self.log(level=DEBUG, msg="Getting data from {}".format(self.piaware_hostname))
-        r = requests.get("http://{0}:8080/data/{1}?_={2}".format(self.piaware_hostname, file, int(time.time() * 1000)))
+        self.log(level=DEBUG, msg=f"Getting data from {self.piaware_hostname}")
+        r = requests.get(f"http://{self.piaware_hostname}:8080/data/{file}?_={int(time.time() * 1000)}")
         if r.status_code == 200:
             data = str(r.text)
         return data
@@ -221,9 +214,9 @@ class RemotePiAwareRelay(PiAwareRelay):
         remote_filename = os.path.join(self.remote_path, filename)
         with sftp.open(remote_filename, 'w') as f:
             try:
-                self.log(level=DEBUG, msg="Writing data to remote file [{}]".format(remote_filename))
+                self.log(level=DEBUG, msg=f"Writing data to remote file [{remote_filename}]")
                 f.write(data=data)
             except IOError:
-                self.log(level=ERROR, msg="IOError trying to write data to remote file [{}]".format(remote_filename))
+                self.log(level=ERROR, msg=f"IOError trying to write data to remote file [{remote_filename}]")
                 return False
         return True
