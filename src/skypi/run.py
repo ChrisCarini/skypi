@@ -29,7 +29,7 @@ def config():
                 short_help="Configure a relay for a *local* PiAware installation.")
 @common_configure_options
 @click.option('--piaware-data-location', 'local_path', default=LOCAL_DATA_FILES_PATH, type=click.Path(),
-              help="The local path of dump1090-fa output. Default: {0}".format(LOCAL_DATA_FILES_PATH))
+              help=f"The local path of dump1090-fa output. Default: {LOCAL_DATA_FILES_PATH}")
 @config_file_option
 @click.pass_context
 def local(ctx, local_path, config_file, *args, **kwargs):
@@ -100,31 +100,30 @@ def run(config_file):
     # Are we local and using a hostname?
     is_local: bool = PiAwareRelay.is_local()
     if is_local and is_config_remote:
-        msg = "Remote configuration file identified, but local path ({}) exists on this host).".format(
-            LOCAL_DATA_FILES_PATH)
+        msg = f"Remote configuration file identified, but local path ({LOCAL_DATA_FILES_PATH}) exists on this host)."
         click.echo(msg)
         log.critical(msg)
         exit(1)
 
     # Was a piaware hostname and piaware data location both specified?
     if is_config_remote and is_config_local:
-        msg = "Both local and remote configuration sections found in {}. " \
-              "Please modify the configuration file to only contain either `local` *OR* `remote`.".format(config_file)
+        msg = f"Both local and remote configuration sections found in {config_file}. " \
+              "Please modify the configuration file to only contain either `local` *OR* `remote`."
         click.echo(msg)
         log.critical(msg)
         exit(1)
 
     log.info("Passed in options:")
-    log.info("\t{0}: {1}".format('config_file', config_file))
-    log.info("\t{0}: {1}".format('remote_host', our_config['remote_host']))
-    log.info("\t{0}: {1}".format('remote_user', our_config['remote_user']))
-    log.info("\t{0}: {1}".format('remote_key', our_config['remote_key']))
-    log.info("\t{0}: {1}".format('remote_path', our_config['remote_path']))
-    log.info("\t{0}: {1}".format('skip_remote_dir_creation', our_config.getboolean('skip_remote_dir_creation')))
-    log.info("\t{0}: {1}".format('duration_between_sends', our_config.getint('duration_between_sends')))
-    log.info("\t{0}: {1}".format('update_history_every', our_config.getint('update_history_every')))
-    log.info("\t{0}: {1}".format('reconnect_every_n_hrs', our_config.getint('reconnect_every_n_hrs')))
-    log.info("\t{0}: {1}".format('log_level', log_level))
+    log.info(f"\tconfig_file: {config_file}")
+    log.info(f"\tremote_host: {our_config['remote_host']}")
+    log.info(f"\tremote_user: {our_config['remote_user']}")
+    log.info(f"\tremote_key: {our_config['remote_key']}")
+    log.info(f"\tremote_path: {our_config['remote_path']}")
+    log.info(f"\tskip_remote_dir_creation: {our_config.getboolean('skip_remote_dir_creation')}")
+    log.info(f"\tduration_between_sends: {our_config.getint('duration_between_sends')}")
+    log.info(f"\tupdate_history_every: {our_config.getint('update_history_every')}")
+    log.info(f"\treconnect_every_n_hrs: {our_config.getint('reconnect_every_n_hrs')}")
+    log.info(f"\tlog_level: {log_level}")
 
     ##
     # Initialize PiAware relays
@@ -132,7 +131,7 @@ def run(config_file):
     killer: GracefulKiller = GracefulKiller()
 
     if is_config_local:
-        log.info("\t{0}: {1}".format('local_path', our_config['local_path']))
+        log.info(f"\tlocal_path: {our_config['local_path']}")
         relay: PiAwareRelay = LocalPiAwareRelay(halt_execution=killer.halt_execution,
                                                 remote_host=our_config['remote_host'],
                                                 remote_user=our_config['remote_user'],
@@ -146,7 +145,7 @@ def run(config_file):
                                                 reconnect_every=our_config.getint('reconnect_every_n_hrs'),
                                                 log=log)
     else:
-        log.info("\t{0}: {1}".format('piaware_hostname', our_config['piaware_hostname']))
+        log.info(f"\tpiaware_hostname: {our_config['piaware_hostname']}")
         relay: PiAwareRelay = RemotePiAwareRelay(halt_execution=killer.halt_execution,
                                                  remote_host=our_config['remote_host'],
                                                  remote_user=our_config['remote_user'],
@@ -167,12 +166,12 @@ def run(config_file):
             log.info("Running the PiAwareRelay...")
             relay.run()
         except Exception as e:
-            log.error("Exception thrown while running the PiAwareRelay: {}".format(e))
+            log.error(f"Exception thrown while running the PiAwareRelay: {e}")
 
         if not killer.halt_execution.is_set():
             secs: float = 60
             end_time: float = time.time() + secs
-            log.info("Sleeping for {} seconds while we wrap up this iteration...".format(secs))
+            log.info(f"Sleeping for {secs} seconds while we wrap up this iteration...")
             while time.time() < end_time and not killer.halt_execution.is_set():
                 time.sleep(1)
 
