@@ -3,6 +3,7 @@ import logging
 import sys
 import time
 from logging.handlers import TimedRotatingFileHandler
+from pathlib import Path
 
 import click
 
@@ -83,7 +84,7 @@ def run(config_file):
     sysout_handler.setFormatter(formatter)
     log.addHandler(sysout_handler)
 
-    rotating_file_handler: logging.Handler = TimedRotatingFileHandler(filename="skypi.log",
+    rotating_file_handler: logging.Handler = TimedRotatingFileHandler(filename=Path("/var/log/skypi") / "skypi.log",
                                                                       interval=1,
                                                                       when="D",
                                                                       backupCount=10)

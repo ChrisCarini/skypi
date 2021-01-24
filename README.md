@@ -1,71 +1,89 @@
 # SkyPi
 
 ## Summary
-SkyPi is a simple relay written in Python which allows people running [FlightAware's PiAware](https://flightaware.com/adsb/) 
-to have the same internally accessible web page be externally accessible without opening any firewall ports. This is 
+
+SkyPi is a simple relay written in Python which allows people
+running [FlightAware's PiAware](https://flightaware.com/adsb/)
+to have the same internally accessible web page be externally accessible without opening any firewall ports. This is
 accomplished by:
-1) Cloning [FlightAware's dump1090 GitHub project `public_html`](https://github.com/flightaware/dump1090/tree/master/public_html) 
-directory to an externally accessible website 
-1) SFTP-ing the necessary JSON files to the needed directory on the aforementioned externally accessible website over SSH
+
+1)
+
+Cloning [FlightAware's dump1090 GitHub project `public_html`](https://github.com/flightaware/dump1090/tree/master/public_html)
+directory to an externally accessible website
+
+1) SFTP-ing the necessary JSON files to the needed directory on the aforementioned externally accessible website over
+   SSH
 
 ## Description
+
 ### Prerequisites
-Before you get started, you'll need the below already setup:
+
+Before you get started, you will need the following already setup:
+
 1) A Raspberry Pi configured with FlightAware's PiAware ([directions](https://flightaware.com/adsb/piaware/))
 1) An externally accessible website
-1) The below network connections (Key-Based SSH Authentication):
-   - Local Computer -> Raspberry Pi
-   - Local Computer -> External Host
-   - Raspberry Pi -> External Host
+1) Key-Based SSH authentication setup for the following:
+    - Local Computer -> Raspberry Pi
+    - Local Computer -> External Host
+    - Raspberry Pi -> External Host
 
 ### Quick Start
-1) Open the `local_variables.sh` file and modify the values as needed.
-1) Run `./install.sh install`
+
+1) Open the `local_variables.sh` file, and modify the values as needed
+1) Run `./install.sh install` and follow the prompts
 
 ### Getting Started
-The below directions assume you are using PiAware on a default `Raspbian` installation; if you are using another Linux 
-OS, you may need to make some modifications. Several convenience scripts are within this repository's `./bin` directory
-to make installation easier.
 
-#### On the externally accessible web host
-Overall, very little is needed from the externally accessable web host. We just want to copy the `public_html` folder of
- the [FlightAware's dump1090 GitHub project](https://github.com/flightaware/dump1090/) to the directory that is serving 
- the html files for our externally accessible webhost. A convenience script exists for us do to that.
+The below directions assume you are using PiAware on a default `Raspberry Pi OS` installation; if you are using another
+Linux OS, you may need to make some modifications. The `install.sh` script is provided as a convenience script to make
+installation easier.
+
+#### On the External Host
+
+Overall, very little is needed from the externally accessable web host.
+
+It needs to be able to:
+
+1) serve html files (to render the site)
+1) accept SSH connections (for the relay to push the needed `json` files)
+
+We just want to copy the `public_html` folder of
+the [FlightAware's dump1090 GitHub project](https://github.com/flightaware/dump1090/) to the directory that is serving
+the html files for our externally accessible webhost. A convenience script exists for us do to that.
+
 1) SSH over to the externally accessible web host and `cd` into the directory serving the publicly accessible files.
-1) Clone this repository
-    ```bash
-    git clone https://github.com/ChrisCarini/skypi.git
-    ```
 1) Run the convenience script to clone FlightAware's GitHub project and grab the desired files:
     ```bash
-    ./skypi/bin/prepare_web.sh
+    bash <(curl -s https://raw.githubusercontent.com/ChrisCarini/skypi/master/bin/prepare_web.sh)
     ```
 
 #### On the Raspberry Pi
+
 1) SSH over to the Raspberry Pi running PiAware - all subsequent commands assume you're on that host
 1) Clone this repository on the Raspberry Pi
     ```bash
     git clone https://github.com/ChrisCarini/skypi.git
     ```
-1) As of 2019-01-25, `Raspbian GNU/Linux 9 (stretch)` does not come with `Python 3.7` which is required; thus we will 
-use the provided convenience script to:
+1) As of 2019-01-25, `Raspbian GNU/Linux 9 (stretch)` does not come with `Python 3.7` which is required; thus we will
+   use the provided convenience script to:
     1) Install the required tools / dependencies to build Python 3.7 from sources
     1) Download the Python 3.7.0 release from [python.org](https://python.org)
     1) Configure, and `make` Python 3.7
     1) Upgrade `pip` within Python 3.7 to a newer version
 
-    Execute this convenience script with the below command:
+   Execute this convenience script with the below command:
     ```bash
     ./skypi/bin/install_python3.7.sh
     ```
 1) We make use of [shiv](https://github.com/linkedin/shiv) to create a self-contained Python app; again, a convenience
-script is provided to create this:
+   script is provided to create this:
     ```bash
     ./skypi/bin/build_shiv.sh
     ```
-    
-1) Once the above script is finished, we will now have a single file that is able to run the app. You can invoke it with 
-    the below command, but view the [manpage](#Manpage) for specific configuration options.
+
+1) Once the above script is finished, we will now have a single file that is able to run the app. You can invoke it with
+   the below command, but view the [manpage](#Manpage) for specific configuration options.
     ```bash
     ./skypi.pyz --remote-host example.com \
                 --remote-user remote_pi \
@@ -74,12 +92,13 @@ script is provided to create this:
                 --skip-remote-dir-creation \
                 --reconnect-every 10 > ./skypi.log &
     ```
-    You can then view the output of the command very simply with `tail`:
+   You can then view the output of the command very simply with `tail`:
     ```bash
     tail -f ./skypi.log 
     ```
 
 ### Manpage
+
 ```bash
 pi@skypi:~/skypi/bin$ ./skypi.pyz --help
 Usage: skypi.pyz [OPTIONS]
@@ -118,10 +137,12 @@ Options:
 pi@skypi:~/skypi/bin$
 ```
 
-
 ## Developing / Contributing
+
 Contributions are welcome! Below are some quick steps for getting started developing.
+
 ### Getting Started (for development)
+
 1) Clone the repo:
     ```bash
     git clone https://github.com/ChrisCarini/skypi.git
@@ -149,7 +170,9 @@ Contributions are welcome! Below are some quick steps for getting started develo
     ```
 
 ### Notes
+
 You need to ensure the following packages are installed on your raspberry pi in order to properly build the shiv.
+
 ```bash
 # Let's update
 sudo apt-get update -y
