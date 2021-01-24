@@ -7,6 +7,13 @@ mv ./tmp_clone/public_html_merged/* ./
 rm -rf ./tmp_clone
 mkdir data
 
+
+##
+# Stats JSON file; See `cat /run/dump1090-fa/stats.json` for contents.
+##
+touch data/stats.json
+
+
 ##
 # Receiver JSON file; contents below:
 ##
@@ -36,5 +43,3 @@ touch data/receiver.json
 #    ]
 #  }
 touch data/aircraft.json
-
-
