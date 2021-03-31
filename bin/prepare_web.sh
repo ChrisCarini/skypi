@@ -3,7 +3,7 @@
 git clone https://github.com/flightaware/dump1090.git ./tmp_clone
 find * -maxdepth 0 -name 'tmp_clone' -prune -o -exec rm -rf '{}' ';'
 rm -rf ./.* 2> /dev/null
-mv ./tmp_clone/public_html/* ./
+mv ./tmp_clone/public_html_merged/* ./
 rm -rf ./tmp_clone
 mkdir data
 
