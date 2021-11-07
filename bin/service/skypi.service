@@ -3,7 +3,7 @@
 
 [Unit]
 Description=SkyPi
-Documentation=https://github.com/chriscarini/skypi/
+Documentation=https://github.com/ChrisCarini/skypi/
 Wants=piaware.service network-online.target
 After=piaware.service
 
