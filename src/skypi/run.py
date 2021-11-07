@@ -83,7 +83,7 @@ def run(config_file):
     sysout_handler.setFormatter(formatter)
     log.addHandler(sysout_handler)
 
-    rotating_file_handler: logging.Handler = TimedRotatingFileHandler(filename="skypi.log",
+    rotating_file_handler: logging.Handler = TimedRotatingFileHandler(filename="/var/log/skypi/skypi.log",
                                                                       interval=1,
                                                                       when="D",
                                                                       backupCount=10)
