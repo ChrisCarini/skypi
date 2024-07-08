@@ -2,7 +2,7 @@ asn1crypto==0.24.0
 bcrypt==3.1.6
 certifi==2024.7.4
 cffi==1.16.0
-chardet==3.0.4
+chardet==5.2.0
 Click==8.1.7
 cryptography==42.0.8
 idna==3.7
