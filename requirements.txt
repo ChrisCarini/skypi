@@ -7,7 +7,7 @@ Click==8.1.7
 cryptography==43.0.0
 idna==3.7
 paramiko==3.4.0
-pip==24.1.2
+pip==24.2
 pyasn1==0.6.0
 pycparser==2.22
 PyNaCl==1.5.0
