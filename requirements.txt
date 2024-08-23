@@ -5,7 +5,7 @@ cffi==1.17.0
 chardet==5.2.0
 Click==8.1.7
 cryptography==43.0.0
-idna==3.7
+idna==3.8
 paramiko==3.4.1
 pip==24.2
 pyasn1==0.6.0
