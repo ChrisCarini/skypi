@@ -4,7 +4,7 @@ certifi==2024.8.30
 cffi==1.17.1
 chardet==5.2.0
 Click==8.1.7
-cryptography==43.0.3
+cryptography==44.0.0
 idna==3.10
 paramiko==3.5.0
 pip==24.3.1
