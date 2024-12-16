@@ -1,6 +1,6 @@
 asn1crypto==1.5.1
 bcrypt==4.2.1
-certifi==2024.8.30
+certifi==2024.12.14
 cffi==1.17.1
 chardet==5.2.0
 Click==8.1.7
