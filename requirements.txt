@@ -15,4 +15,4 @@ requests==2.32.3
 setuptools==75.6.0
 shiv==1.0.8
 six==1.17.0
-urllib3==2.2.3
+urllib3==2.3.0
