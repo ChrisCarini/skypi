@@ -6,7 +6,7 @@ chardet==5.2.0
 Click==8.1.8
 cryptography==44.0.0
 idna==3.10
-paramiko==3.5.0
+paramiko==3.5.1
 pip==25.0
 pyasn1==0.6.1
 pycparser==2.22
