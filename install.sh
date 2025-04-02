@@ -52,17 +52,17 @@ function sub_configure() {
   echo "        ^ [${PI_HOSTNAME}]                               ^ [${EXTERNAL_HOST_HOSTNAME}]"
   echo ""
 
-  read -p "[External Host] Username: " ext_host_user
-  read -p "[External Host] ${ext_host_user}'s SSH Key Path: " ext_host_key_path
+  remote_home_path=$(ssh -i ${PI_SSH_KEY} ${PI_USER}@${PI_HOSTNAME} 'echo ~')
+  ext_host_key_path="${remote_home_path}/${EXTERNAL_HOST_SSHKEY}"
 
   # write file
   echo "[common]" >${CONFIG_FILE_NAME}
   echo "remote_host = ${EXTERNAL_HOST_HOSTNAME}" >>${CONFIG_FILE_NAME}
-  echo "remote_user = ${ext_host_user}" >>${CONFIG_FILE_NAME}
+  echo "remote_user = ${EXTERNAL_HOST_USERNAME}" >>${CONFIG_FILE_NAME}
   echo "remote_key = ${ext_host_key_path}" >>${CONFIG_FILE_NAME}
   echo "remote_path = ${EXTERNAL_HOST_PATH}/data" >>${CONFIG_FILE_NAME}
   echo "skip_remote_dir_creation = True" >>${CONFIG_FILE_NAME}
-  echo "duration_between_sends = 4" >>${CONFIG_FILE_NAME}
+  echo "duration_between_sends = 3" >>${CONFIG_FILE_NAME}
   echo "update_history_every = 240" >>${CONFIG_FILE_NAME}
   echo "reconnect_every_n_hrs = 1" >>${CONFIG_FILE_NAME}
   echo "log_level = INFO" >>${CONFIG_FILE_NAME}
