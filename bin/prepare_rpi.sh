@@ -16,6 +16,8 @@ SKYPI_BIN_DEST="/usr/local/skypi/"
 SERVICE_LOG_DIR="/var/log/skypi"
 SERVICE_FILE_SRC="${ROOT_PATH}/bin/service/${SERVICE_FILENAME}"
 SERVICE_FILE_DST="/lib/systemd/system/${SERVICE_FILENAME}"
+PYTHON_VERSION=3.12.9
+PYTHON_VERSION_MAJOR_MINOR=$(echo "$PYTHON_VERSION" | cut -d. -f1,2)
 
 ##
 # HELP TEXT
@@ -25,7 +27,7 @@ function sub_help() {
   echo
   echo "Commands:"
   echo "   clean_files        Cleanup as many files as we can."
-  echo "   install_python37   Install Python 3.7"
+  echo "   install_python     Install Python ${PYTHON_VERSION}"
   echo "   build_shiv         Build the SkyPi shiv"
   echo "   install_shiv       Install the SkyPi shiv"
   echo "   install_service    Install the SkyPi service"
@@ -46,26 +48,26 @@ function sub_clean_files() {
   echo "Done."
 }
 
-function sub_install_python37() {
+function sub_install_python() {
   # Update & install the needed packages
   sudo apt-get update -y
   sudo apt-get install -y build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev libffi-dev
 
-  # Download Python 3.7.0 and install
-  wget https://www.python.org/ftp/python/3.7.0/Python-3.7.0.tar.xz
-  tar xf Python-3.7.0.tar.xz
-  cd Python-3.7.0
+  # Download Python and install
+  wget "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tar.xz"
+  tar xf "Python-${PYTHON_VERSION}.tar.xz"
+  cd "Python-${PYTHON_VERSION}"
   ./configure
   make -j 4
   sudo make altinstall
 
   # Upgrade pip - after installing, pip 10.0.1 is installed, and we want something newer (19.0.1, for example)
-  sudo python3.7 -m pip install --upgrade pip
+  sudo python$PYTHON_VERSION_MAJOR_MINOR -m pip install --upgrade pip
 
   # Remove all the artifacts we no longer need
   cd ..
-  sudo rm -r Python-3.7.0
-  rm Python-3.7.0.tar.xz
+  sudo rm -r "Python-${PYTHON_VERSION_MAJOR_MINOR}"
+  rm "Python-${PYTHON_VERSION_MAJOR_MINOR}.tar.xz"
   # Choosing to leave the packages that were installed; the commands to remove are below:
   #sudo apt-get --purge remove build-essential tk-dev libncurses5-dev libncursesw5-dev libreadline6-dev libdb5.3-dev libgdbm-dev libsqlite3-dev libssl-dev libbz2-dev libexpat1-dev liblzma-dev zlib1g-dev libffi-dev -y
   #sudo apt-get autoremove -y
@@ -86,9 +88,9 @@ function sub_build_shiv() {
   if [[ -d "venv/" ]]; then
     echo "virtualenv IS present."
   else
-    echo "virtualenv NOT present."
+    echo "virtualenv IS NOT present."
     echo "create virtualenv..."
-    python3.7 -m venv venv
+    python$PYTHON_VERSION_MAJOR_MINOR -m venv venv
     echo "done."
   fi
 
@@ -105,7 +107,7 @@ function sub_build_shiv() {
     echo "\"${DIST_DIR}/\" IS present."
 
     echo "check if the \"${DIST_DIR}/\" directory has different requirements installed..."
-    ls ${DIST_DIR} | grep -E -o ".*.(dist|egg)-info" | sed 's/-/==/' | sed 's/.dist-info//' | sed 's/-py3.7.egg-info//' >tmp_req.txt
+    ls ${DIST_DIR} | grep -E -o ".*.(dist|egg)-info" | sed 's/-/==/' | sed 's/.dist-info//' | sed "s/-py${PYTHON_VERSION_MAJOR_MINOR}.egg-info//" >tmp_req.txt
     REQ_DIFF=$(diff <(cat tmp_req.txt | sort) <(cat ../requirements.txt | sort))
     if [[ "$REQ_DIFF" != "" ]]; then
       echo "requirements ARE different - removing existing \"${DIST_DIR}/\"..."
@@ -133,7 +135,7 @@ function sub_build_shiv() {
   echo "done."
 
   echo "shiv that sucker..."
-  shiv --site-packages ${DIST_DIR} --compressed -p '/usr/bin/env python3.7' -o "${SHIV_FILENAME}" -e src.skypi.run.cli
+  shiv --site-packages "${DIST_DIR}/" --compressed -p "/usr/bin/env python${PYTHON_VERSION_MAJOR_MINOR}" -o "${SHIV_FILENAME}" -e src.skypi.run.cli
   echo "done."
 
   echo "deactivate virtualenv..."

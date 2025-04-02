@@ -17,7 +17,7 @@ function sub_help() {
   echo "   install                              [local] Perform a full installation of SkyPi (configure local RaspberryPi and External Host)"
   echo "   configure                            [local] Prompt the user for configuration parameters for the connection between the RaspberryPi and the External Host"
   echo "   update_raspberry_pi                  [RaspberryPi] Update all necessary files on the RaspberryPi"
-  echo "   sub_install_python37_raspberry_pi    [RaspberryPi] Install Python 3.7 on the RaspberryPi"
+  echo "   sub_install_python_raspberry_pi      [RaspberryPi] Install Python on the RaspberryPi"
   echo "   prepare_raspberry_pi                 [RaspberryPi] Prepare the RaspberryPi"
   echo "   cleanup_raspberry_pi                 [RaspberryPi] Cleanup as many files as we can on the RaspberryPi"
   echo "   prepare_external_host                [External Host] Prepare the External Host"
@@ -30,7 +30,7 @@ function sub_help() {
 function sub_install() {
   sub_prepare_external_host
   sub_configure
-  sub_install_python37_raspberry_pi
+  sub_install_python_raspberry_pi
   sub_prepare_raspberry_pi
 }
 
@@ -92,9 +92,9 @@ function sub_update_raspberry_pi() {
   scp -i ${PI_SSH_KEY} -r ./{src/,bin/,requirements.txt} ${PI_USER}@${PI_HOSTNAME}:~/skypi/
 }
 
-function sub_install_python37_raspberry_pi() {
+function sub_install_python_raspberry_pi() {
   sub_update_raspberry_pi
-  ssh -i ${PI_SSH_KEY} ${PI_USER}@${PI_HOSTNAME} "cd ~/skypi/bin ; ./prepare_rpi.sh install_python37"
+  ssh -i ${PI_SSH_KEY} ${PI_USER}@${PI_HOSTNAME} "cd ~/skypi/bin ; ./prepare_rpi.sh install_python"
 }
 
 function sub_prepare_raspberry_pi() {
