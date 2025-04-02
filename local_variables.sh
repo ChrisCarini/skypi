@@ -12,5 +12,6 @@ PI_SSH_KEY=<path_to_ssh_key_for_user_above>
 ##
 EXTERNAL_HOST_HOSTNAME=<hostname_of_external_host>
 EXTERNAL_HOST_USERNAME=<username_to_connect_to_above_host>
+# Should start from `.ssh/`
 EXTERNAL_HOST_SSHKEY=<path_to_ssh_key_for_above_user_for_external_host>
 EXTERNAL_HOST_PATH=<full_path_on_remote_host>
