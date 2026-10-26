@@ -1,4 +1,4 @@
-configparser==7.2.0
+configparser==7.3.0
 Click==8.5.0
 requests==2.34.2
 paramiko==5.1.0
